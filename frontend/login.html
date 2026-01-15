@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Access</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+    
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <div class="login-wrapper">
+        <div class="glass-card login-card animate-entry">
+            
+            <div class="login-header">
+                <div class="brand" style="justify-content: center; margin-bottom: 0.5rem;">
+                    <span>✦</span> AURA
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">System Authentication</p>
+            </div>
+
+            <div class="auth-toggle-group">
+                <button class="toggle-btn active" id="btn-signin-view">Sign In</button>
+                <button class="toggle-btn" id="btn-signup-view">New Account</button>
+            </div>
+
+            <form id="form-signin" class="auth-form active">
+                <div class="input-group">
+                    <label>Identity</label>
+                    <input type="email" placeholder="user@aura.system" class="auth-input">
+                </div>
+                <div class="input-group">
+                    <label>Passcode</label>
+                    <input type="password" placeholder="••••••••" class="auth-input">
+                </div>
+                <button type="button" class="btn" id="btn-login-action">Initialize Session</button>
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <a href="#" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: none; border-bottom: 1px dashed var(--text-muted);">Forgot credentials?</a>
+                </div>
+            </form>
+
+            <form id="form-signup" class="auth-form">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" placeholder="Create ID" class="auth-input">
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" placeholder="user@email.com" class="auth-input">
+                </div>
+                <div class="input-group">
+                    <label>Set Passcode</label>
+                    <input type="password" placeholder="••••••••" class="auth-input">
+                </div>
+                <button type="button" class="btn" id="btn-signup-action">Create Profile</button>
+            </form>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

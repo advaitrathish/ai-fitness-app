@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA Fitness | Nutrition</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="brand"><span>✦</span> AURA</div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-item">Dashboard</a></li>
+                <li><a href="exercises.html" class="nav-item">Exercises</a></li>
+                <li><a href="live.html" class="nav-item">Live Workout</a></li>
+                <li><a href="progress.html" class="nav-item">Progress</a></li>
+                <li><a href="meal.html" class="nav-item active">Meal Plan</a></li>
+                <li><a href="coach.html" class="nav-item">AI Coach</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1>AI Nutrition Plan</h1>
+                <div class="date-badge">Goal: --</div>
+
+                <div>
+        <h1>Dashboard</h1> <p style="color: var(--text-muted);">Biometrics synced.</p>
+    </div>
+
+    <div class="header-actions">
+        <div class="glass-card" style="padding: 0.5rem 1rem; border-radius: 50px; display:inline-flex; align-items:center; gap:8px;">
+            <span style="color: var(--accent-cyan);">●</span> Online
+        </div>
+        
+        <button id="logout-btn" class="logout-btn">
+            Logout
+        </button>
+    </div>
+            </header>
+
+            <div class="grid-container grid-3 animate-entry">
+                <div class="card">
+                    <div class="card-header"><span class="badge badge-med">Breakfast</span></div>
+                    <h3>Oatmeal & Whey</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:5px;">450 Kcal</p>
+                    <button class="btn btn-secondary" style="margin-top:10px; font-size:0.8rem; padding:0.5rem;">Mark as Eaten</button>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="badge badge-med">Lunch</span></div>
+                    <h3>Grilled Chicken Bowl</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:5px;">650 Kcal</p>
+                    <button class="btn btn-secondary" style="margin-top:10px; font-size:0.8rem; padding:0.5rem;">Mark as Eaten</button>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="badge badge-med">Dinner</span></div>
+                    <h3>Salmon & Asparagus</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:5px;">500 Kcal</p>
+                    <button class="btn btn-secondary" style="margin-top:10px; font-size:0.8rem; padding:0.5rem;">Mark as Eaten</button>
+                </div>
+            </div>
+
+            <div class="card animate-entry">
+                <div class="card-header"><span class="card-title">Daily Macro Goals</span></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-top:1rem;">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span>Protein</span>
+                            <span class="text-primary">0g / 180g</span>
+                        </div>
+                        <div class="progress-track"><div class="progress-fill" style="width: 0%;"></div></div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span>Carbs</span>
+                            <span class="text-warning">0g / 250g</span>
+                        </div>
+                        <div class="progress-track"><div class="progress-fill" style="width: 0%; background: var(--warning)"></div></div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span>Fats</span>
+                            <span class="text-danger">0g / 60g</span>
+                        </div>
+                        <div class="progress-track"><div class="progress-fill" style="width: 0%; background: var(--danger)"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

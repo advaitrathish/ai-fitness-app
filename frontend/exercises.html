@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA Fitness | Exercises</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="brand"><span>✦</span> AURA</div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-item">Dashboard</a></li>
+                <li><a href="exercises.html" class="nav-item active">Exercises</a></li>
+                <li><a href="live.html" class="nav-item">Live Workout</a></li>
+                <li><a href="progress.html" class="nav-item">Progress</a></li>
+                <li><a href="meal.html" class="nav-item">Meal Plan</a></li>
+                <li><a href="coach.html" class="nav-item">AI Coach</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content" style="overflow: hidden;"> 
+            <header>
+                <h1>Exercise Library</h1>
+                <div class="date-badge">Swipe to Explore</div>
+
+                <div>
+        <h1>Dashboard</h1> <p style="color: var(--text-muted);">Biometrics synced.</p>
+    </div>
+
+    <div class="header-actions">
+        <div class="glass-card" style="padding: 0.5rem 1rem; border-radius: 50px; display:inline-flex; align-items:center; gap:8px;">
+            <span style="color: var(--accent-cyan);">●</span> Online
+        </div>
+        
+        <button id="logout-btn" class="logout-btn">
+            Logout
+        </button>
+    </div>
+            </header>
+
+            <div class="carousel-section">
+                <button class="nav-btn prev-btn" id="prevBtn">❮</button>
+                
+                <div class="carousel-track" id="track">
+                    
+                    <div class="exercise-card active" data-color="--primary" data-icon="⚡">
+                        <div class="badge badge-med">Legs</div>
+                        <div class="card-visual">⚡</div>
+                        <div>
+                            <h2>Squats</h2>
+                            <p class="text-muted">Compound power movement.</p>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-color="--accent" data-icon="💪">
+                        <div class="badge badge-easy">Chest</div>
+                        <div class="card-visual">💪</div>
+                        <div>
+                            <h2>Push-ups</h2>
+                            <p class="text-muted">Bodyweight classic.</p>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-color="--success" data-icon="🧘">
+                        <div class="badge badge-hard">Core</div>
+                        <div class="card-visual">🧘</div>
+                        <div>
+                            <h2>Planks</h2>
+                            <p class="text-muted">Static stability.</p>
+                        </div>
+                    </div>
+
+                    <div class="exercise-card" data-color="--warning" data-icon="🏋️">
+                        <div class="badge badge-med">Back</div>
+                        <div class="card-visual">🏋️</div>
+                        <div>
+                            <h2>Deadlift</h2>
+                            <p class="text-muted">Full body strength.</p>
+                        </div>
+                    </div>
+
+                     <div class="exercise-card" data-color="--danger" data-icon="🏃">
+                        <div class="badge badge-easy">Cardio</div>
+                        <div class="card-visual">🏃</div>
+                        <div>
+                            <h2>HIIT Run</h2>
+                            <p class="text-muted">Explosive stamina.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button class="nav-btn next-btn" id="nextBtn">❯</button>
+            </div>
+            
+            <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">
+                Click any card to analyze details
+            </p>
+
+        </main>
+    </div>
+
+    <div class="hero-overlay" id="heroOverlay">
+        <div class="hero-card" id="heroCard">
+            <button class="close-btn" id="closeHero">✖</button>
+            <div class="hero-visual" id="heroVisual">
+                </div>
+            <div class="hero-content">
+                <span class="badge badge-med" id="heroBadge">CATEGORY</span>
+                <h1 id="heroTitle" style="font-size: 3rem; margin: 10px 0 20px 0;">Title</h1>
+                <p id="heroDesc" style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                    Description goes here.
+                </p>
+                
+                <hr style="border:0; border-top:1px solid var(--glass-border); margin-bottom: 2rem;">
+
+                <div class="grid-container grid-2">
+                    <div>
+                        <span style="color:var(--text-muted); font-size: 0.9rem;">Primary Muscle</span>
+                        <div style="font-size: 1.2rem; font-weight:600;">Quadriceps</div>
+                    </div>
+                    <div>
+                         <span style="color:var(--text-muted); font-size: 0.9rem;">Difficulty</span>
+                         <div style="font-size: 1.2rem; font-weight:600; color: var(--primary);">Advanced</div>
+                    </div>
+                </div>
+
+                <button class="btn" style="margin-top: 2rem;">Start Guided Session</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

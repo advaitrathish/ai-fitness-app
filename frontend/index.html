@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fitness | Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="brand">
+                <span>💪</span> AI Fitness
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-item active">Dashboard</a></li>
+                <li><a href="exercises.html" class="nav-item">Exercises</a></li>
+                <li><a href="live.html" class="nav-item">Live Workout</a></li>
+                <li><a href="progress.html" class="nav-item">Progress</a></li>
+                <li><a href="meal.html" class="nav-item">Meal Plan</a></li>
+                <li><a href="coach.html" class="nav-item">AI Coach</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <div class="header-text">
+                    <h1>Welcome back, User</h1>
+                    <p style="color: var(--text-muted);">Ready to start your journey?</p>
+                </div>
+                <div class="date-badge" id="current-date">--/--/----</div>
+
+                <div>
+        <h1>Dashboard</h1> <p style="color: var(--text-muted);">Biometrics synced.</p>
+    </div>
+
+    <div class="header-actions">
+        <div class="glass-card" style="padding: 0.5rem 1rem; border-radius: 50px; display:inline-flex; align-items:center; gap:8px;">
+            <span style="color: var(--accent-cyan);">●</span> Online
+        </div>
+        
+        <button id="logout-btn" class="logout-btn">
+            Logout
+        </button>
+    </div>
+            </header>
+
+            <div class="grid-container grid-4 animate-entry">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Activity Timer</span>
+                    </div>
+                    <div class="card-value">0<span style="font-size: 1rem; color:var(--text-muted)">m</span></div>
+                    <div class="card-sub text-muted">● Offline</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Calories</span>
+                    </div>
+                    <div class="card-value">0</div>
+                    <div class="card-sub text-muted">-- vs yesterday</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Total Reps</span>
+                    </div>
+                    <div class="card-value">0</div>
+                    <div class="card-sub text-muted">Weekly total</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Streak</span>
+                    </div>
+                    <div class="card-value">0<span style="font-size: 1rem"> Days</span></div>
+                    <div class="card-sub text-muted">Start today!</div>
+                </div>
+            </div>
+
+            <div class="grid-container grid-2 animate-entry" style="animation-delay: 0.1s;">
+                <div class="card" style="grid-column: span 1;">
+                    <div class="card-header">
+                        <span class="card-title">AI Performance Insight</span>
+                    </div>
+                    <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
+                        No workout data available for analysis. Complete your first session to generate insights.
+                    </p>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Form Accuracy</span>
+                        <span style="font-size: 0.8rem;">--%</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Next Scheduled Workout</span>
+                    </div>
+                    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">No Sessions Scheduled</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
+                        <span class="badge badge-med">Intensity: --</span>
+                        <span class="badge badge-easy">-- Mins</span>
+                    </div>
+                    <button class="btn" onclick="window.location.href='live.html'">Start New Session</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA Fitness | Live</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="brand"><span>✦</span> AURA</div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-item">Dashboard</a></li>
+                <li><a href="exercises.html" class="nav-item">Exercises</a></li>
+                <li><a href="live.html" class="nav-item active">Live Workout</a></li>
+                <li><a href="progress.html" class="nav-item">Progress</a></li>
+                <li><a href="meal.html" class="nav-item">Meal Plan</a></li>
+                <li><a href="coach.html" class="nav-item">AI Coach</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1>Live Session</h1>
+                <div class="date-badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--glass-border);">● READY</div>
+
+                <div>
+        <h1>Dashboard</h1> <p style="color: var(--text-muted);">Biometrics synced.</p>
+    </div>
+
+    <div class="header-actions">
+        <div class="glass-card" style="padding: 0.5rem 1rem; border-radius: 50px; display:inline-flex; align-items:center; gap:8px;">
+            <span style="color: var(--accent-cyan);">●</span> Online
+        </div>
+        
+        <button id="logout-btn" class="logout-btn">
+            Logout
+        </button>
+    </div>
+            </header>
+
+            <div class="grid-container grid-2 animate-entry">
+                <div style="grid-column: span 1;">
+                    <div class="camera-placeholder">
+                        <div class="ai-overlay">
+                            AI VISION: STANDBY<br>
+                            Waiting for camera...
+                        </div>
+                        </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Live Feedback</span>
+                        </div>
+                        <h2 id="posture-feedback" style="color: var(--text-muted); font-size: 1.8rem;">Waiting for input...</h2>
+                        <p style="color: var(--text-muted);">Position yourself in frame.</p>
+                    </div>
+
+                    <div class="grid-container grid-2" style="margin-bottom: 0;">
+                        <div class="card">
+                            <span class="card-title">Reps</span>
+                            <div class="card-value" id="rep-counter">0</div>
+                        </div>
+                        <div class="card">
+                            <span class="card-title">Timer</span>
+                            <div class="card-value" id="workout-timer">00:00</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <span class="card-title">Joint Velocity</span>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: 0%; background: var(--accent);"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn" style="background: var(--primary); color: var(--bg-dark);">Start Session</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

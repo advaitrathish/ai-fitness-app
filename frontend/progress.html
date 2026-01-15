@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA Fitness | Progress</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="brand"><span>✦</span> AURA</div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-item">Dashboard</a></li>
+                <li><a href="exercises.html" class="nav-item">Exercises</a></li>
+                <li><a href="live.html" class="nav-item">Live Workout</a></li>
+                <li><a href="progress.html" class="nav-item active">Progress</a></li>
+                <li><a href="meal.html" class="nav-item">Meal Plan</a></li>
+                <li><a href="coach.html" class="nav-item">AI Coach</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1>Stats Analysis</h1>
+
+                <div>
+        <h1>Dashboard</h1> <p style="color: var(--text-muted);">Biometrics synced.</p>
+    </div>
+
+    <div class="header-actions">
+        <div class="glass-card" style="padding: 0.5rem 1rem; border-radius: 50px; display:inline-flex; align-items:center; gap:8px;">
+            <span style="color: var(--accent-cyan);">●</span> Online
+        </div>
+        
+        <button id="logout-btn" class="logout-btn">
+            Logout
+        </button>
+    </div>
+            </header>
+
+            <div class="grid-container grid-3 animate-entry">
+                <div class="card">
+                    <span class="card-title">Weekly Accuracy</span>
+                    <div class="card-value text-primary">0%</div>
+                </div>
+                <div class="card">
+                    <span class="card-title">Volume Lifted</span>
+                    <div class="card-value">0 <span style="font-size:1rem; color:var(--text-muted)">kg</span></div>
+                </div>
+                <div class="card">
+                    <span class="card-title">Consistency</span>
+                    <div class="card-value text-muted">--</div>
+                </div>
+            </div>
+
+            <div class="card animate-entry" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <span class="card-title">Workout Frequency (Last 7 Days)</span>
+                </div>
+                <div class="chart-container">
+                    <div class="bar-group">
+                        <div class="bar" style="height: 0%;"></div>
+                        <span class="bar-label">Mon</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 0%;"></div>
+                        <span class="bar-label">Tue</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 0%;"></div>
+                        <span class="bar-label">Wed</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 0%;"></div>
+                        <span class="bar-label">Thu</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 0%;"></div>
+                        <span class="bar-label">Fri</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 0%;"></div>
+                        <span class="bar-label">Sat</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar" style="height: 0%;"></div>
+                        <span class="bar-label">Sun</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-container grid-2">
+                <div class="card">
+                     <span class="card-title">Calories Burned vs Goal</span>
+                     <div style="margin-top: 2rem;">
+                         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                             <span>Goal: 2500</span>
+                             <span class="text-primary">Current: 0</span>
+                         </div>
+                         <div class="progress-track">
+                             <div class="progress-fill" style="width: 0%;"></div>
+                         </div>
+                     </div>
+                </div>
+                <div class="card">
+                     <span class="card-title">Muscle Recovery Status</span>
+                     <div style="margin-top: 1rem; display:flex; gap:10px; flex-wrap:wrap;">
+                         <span class="badge badge-med">Legs: --%</span>
+                         <span class="badge badge-med">Chest: --%</span>
+                         <span class="badge badge-med">Back: --%</span>
+                         <span class="badge badge-med">Arms: --%</span>
+                     </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
