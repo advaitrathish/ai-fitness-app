@@ -22,3 +22,6 @@ provide form correction, and visualize user progress.
 - Arundev A
 - Adithya Haridas
 - Aswin V
+
+## Development Notes
+This project was developed with the assistance of AI tools for rapid prototyping, with logic design, integration, and validation performed manually.
