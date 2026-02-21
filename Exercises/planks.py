@@ -1,10 +1,16 @@
+from backend_sender import send_workout_to_backend
 import cv2
 import mediapipe as mp
 import numpy as np
 import time
-import winsound  # Windows only
+import winsound
 
-# ===================== 1. SETUP & CONFIGURATION =====================
+# ================= CONFIG =================
+TOTAL_TIME = 35
+ANGLE_MIN = 165
+ANGLE_MAX = 195
+IDLE_LIMIT = 5
+
 mp_pose = mp.solutions.pose
 mp_draw = mp.solutions.drawing_utils
 
@@ -15,233 +21,185 @@ pose = mp_pose.Pose(
 
 cap = cv2.VideoCapture(0)
 
-# ===================== CONSTANTS =====================
-TOTAL_TIME = 120  # 2 Minutes
-# Plank Grading (Total time held correctly)
-# Good: Held for 60s+ within the 2 min window
-# Average: Held for 30s-60s
-# Bad: Held for < 30s
-
-# Form Thresholds (Angles in Degrees)
-# 180 is perfectly straight. We allow a small margin.
-ANGLE_MIN = 165
-ANGLE_MAX = 195
-
-# ===================== STATE VARIABLES =====================
+# ================= STATE =================
 timer_running = False
 start_time = 0
-elapsed = 0
 remaining = TOTAL_TIME
 
-total_hold_time = 0.0 # Float to count seconds
-last_frame_time = 0
+total_hold_time = 0.0
+data_sent = False
 form_good = False
+last_timestamp = time.time()
+last_good_time = time.time()
 
-triggered_alerts = set()
-feedback = "Press 'S' to Start"
-feedback_color = (0, 255, 255) # Yellow
-alert_active = False 
-
-# ===================== FUNCTIONS =====================
-def beep(freq=800, dur=100):
+# ================= HELPERS =================
+def beep(freq=900, dur=120):
     try:
         winsound.Beep(freq, dur)
     except:
         pass
 
-def get_grade(seconds_held):
-    if seconds_held >= 60:
-        return "GOOD", (0, 255, 0)      
-    elif 30 <= seconds_held < 60:
-        return "AVERAGE", (0, 255, 255) 
-    else:
-        return "BAD", (0, 0, 255)       
+def get_grade(seconds):
+    if seconds >= 25:
+        return "GOOD"
+    elif seconds >= 15:
+        return "AVERAGE"
+    return "BAD"
 
 def calculate_angle(a, b, c):
-    a = np.array(a) # First
-    b = np.array(b) # Mid
-    c = np.array(c) # End
-    
-    radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
-    angle = np.abs(radians*180.0/np.pi)
-    
-    if angle > 180.0:
-        angle = 360-angle
-        
+    a = np.array(a)
+    b = np.array(b)
+    c = np.array(c)
+
+    radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - \
+              np.arctan2(a[1]-b[1], a[0]-b[0])
+    angle = abs(radians * 180.0 / np.pi)
+    if angle > 180:
+        angle = 360 - angle
     return angle
 
-# ===================== MAIN LOOP =====================
-last_timestamp = time.time()
-
+# ================= MAIN LOOP =================
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
 
-    # Calculate Delta Time (for accurate hold counting)
+    frame = cv2.flip(frame, 1)
+    h, w, _ = frame.shape
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = pose.process(rgb)
+
     current_time = time.time()
     dt = current_time - last_timestamp
     last_timestamp = current_time
 
-    # 1. Prepare Frame
-    frame = cv2.flip(frame, 1) 
-    h, w, _ = frame.shape
-    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = pose.process(rgb_image)
-    
-    # 2. Timer Logic (Global 2-min Limit)
+    # ================= TIMER =================
     if timer_running:
         elapsed = int(current_time - start_time)
         remaining = max(0, TOTAL_TIME - elapsed)
-        
-        # --- Time Alerts (30s, 10s, 5s) ---
-        if remaining in [30, 10, 5] and remaining not in triggered_alerts:
-            triggered_alerts.add(remaining)
-            alert_active = True
-            feedback = f"{remaining} SECONDS LEFT!"
-            feedback_color = (0, 0, 255) # Red
-            beep(1000, 400) 
-        elif remaining not in [30, 10, 5]:
-            alert_active = False 
 
-        # --- Time Over Check ---
-        if remaining <= 0:
+        if remaining == 0:
             timer_running = False
-            feedback = "TIME OVER"
-            beep(1500, 1000) 
+            beep(1200, 400)
 
-    # 3. Plank Logic (Form Check)
-    current_angle = 0.0
-    
-    if results.pose_landmarks:
+    skeleton_color = (255, 255, 255)
+
+    # ================= PLANK LOGIC =================
+    if results.pose_landmarks and timer_running:
         lm = results.pose_landmarks.landmark
-        
-        # Auto-detect side logic
-        left_hip_vis = lm[mp_pose.PoseLandmark.LEFT_HIP.value].visibility
-        right_hip_vis = lm[mp_pose.PoseLandmark.RIGHT_HIP.value].visibility
 
-        if left_hip_vis > right_hip_vis:
-            shoulder_lm = mp_pose.PoseLandmark.LEFT_SHOULDER
-            hip_lm = mp_pose.PoseLandmark.LEFT_HIP
-            ankle_lm = mp_pose.PoseLandmark.LEFT_ANKLE
+        # Pick clearer side
+        left_vis = lm[mp_pose.PoseLandmark.LEFT_HIP.value].visibility
+        right_vis = lm[mp_pose.PoseLandmark.RIGHT_HIP.value].visibility
+
+        if left_vis > right_vis:
+            shoulder = lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
+            hip = lm[mp_pose.PoseLandmark.LEFT_HIP.value]
+            ankle = lm[mp_pose.PoseLandmark.LEFT_ANKLE.value]
         else:
-            shoulder_lm = mp_pose.PoseLandmark.RIGHT_SHOULDER
-            hip_lm = mp_pose.PoseLandmark.RIGHT_HIP
-            ankle_lm = mp_pose.PoseLandmark.RIGHT_ANKLE
+            shoulder = lm[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+            hip = lm[mp_pose.PoseLandmark.RIGHT_HIP.value]
+            ankle = lm[mp_pose.PoseLandmark.RIGHT_ANKLE.value]
 
-        # Get Coordinates
-        shoulder = [lm[shoulder_lm.value].x, lm[shoulder_lm.value].y]
-        hip = [lm[hip_lm.value].x, lm[hip_lm.value].y]
-        ankle = [lm[ankle_lm.value].x, lm[ankle_lm.value].y]
-        
-        # Visibility Check
-        if lm[hip_lm.value].visibility > 0.5:
-            
-            # --- ANGLE CALCULATION ---
-            current_angle = calculate_angle(shoulder, hip, ankle)
-            
-            # --- HORIZONTAL CHECK ---
-            # Ensure body is horizontal (X dist > Y dist)
-            is_horizontal = abs(shoulder[0] - ankle[0]) > abs(shoulder[1] - ankle[1])
+        if hip.visibility > 0.6:
+            angle = calculate_angle(
+                [shoulder.x, shoulder.y],
+                [hip.x, hip.y],
+                [ankle.x, ankle.y]
+            )
 
-            # --- COUNTING LOGIC ---
-            if timer_running:
-                if not is_horizontal:
-                    form_good = False
-                    if not alert_active:
-                        feedback = "GET DOWN (PLANK)"
-                        feedback_color = (0, 255, 255)
-                
-                # Check for Straight Line (165 - 195 degrees)
-                elif ANGLE_MIN < current_angle < ANGLE_MAX:
-                    form_good = True
-                    total_hold_time += dt  # Add time delta
-                    if not alert_active:
-                        feedback = "PERFECT FORM"
-                        feedback_color = (0, 255, 0)
-                
-                else:
-                    form_good = False
-                    if not alert_active:
-                        # Angle diagnostics
-                        if current_angle < ANGLE_MIN:
-                            feedback = "RAISE HIPS"
-                        else:
-                            feedback = "LOWER HIPS"
-                        feedback_color = (0, 0, 255)
-                        
-                        # Warning beep every 2 seconds if form is bad
-                        if int(current_time) % 2 == 0:
-                            beep(600, 50)
-                            
-        else:
-            form_good = False
-            if not alert_active:
-                feedback = "BODY NOT VISIBLE"
-                feedback_color = (0, 0, 255)
+            is_horizontal = abs(shoulder.x - ankle.x) > abs(shoulder.y - ankle.y)
 
-    # ===================== DRAWING UI =====================
-    
-    # 4. Result Screen
+            if is_horizontal and ANGLE_MIN < angle < ANGLE_MAX:
+                form_good = True
+                total_hold_time += dt
+                last_good_time = current_time
+                skeleton_color = (0, 255, 0)  # Green = correct
+            else:
+                form_good = False
+                skeleton_color = (0, 0, 255)  # Red = wrong form
+
+            cv2.putText(frame, f"Hip Angle: {int(angle)}",
+                        (20, 170),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6, (255, 255, 255), 2)
+
+        # Idle detection
+        if current_time - last_good_time > IDLE_LIMIT:
+            cv2.putText(frame, "FIX FORM!",
+                        (20, 200),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6, (0, 165, 255), 2)
+
+    # ================= RESULT =================
     if not timer_running and remaining == 0 and start_time != 0:
-        grade_text, grade_color = get_grade(total_hold_time)
-        
-        overlay = frame.copy()
-        cv2.rectangle(overlay, (50, 50), (w-50, h-50), (0,0,0), -1)
-        frame = cv2.addWeighted(overlay, 0.8, frame, 0.2, 0)
-        
-        cv2.putText(frame, "WORKOUT OVER", (w//2 - 180, h//2 - 60), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
-        cv2.putText(frame, f"HELD: {int(total_hold_time)}s", (w//2 - 120, h//2), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
-        cv2.putText(frame, f"GRADE: {grade_text}", (w//2 - 160, h//2 + 80), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, grade_color, 4)
-        cv2.putText(frame, "Press 'S' to Restart", (w//2 - 130, h-80), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (200, 200, 200), 1)
+        grade = get_grade(total_hold_time)
 
-    # 5. Active UI
+        if not data_sent:
+            send_workout_to_backend(
+                "planks",
+                int(total_hold_time),
+                TOTAL_TIME,
+                grade
+            )
+            data_sent = True
+
+        cv2.putText(frame, "WORKOUT OVER",
+                    (100, 150),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2, (255, 255, 255), 3)
+
+        cv2.putText(frame, f"Held: {int(total_hold_time)}s",
+                    (100, 200),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2, (0, 255, 0), 3)
+
+        cv2.putText(frame, f"Grade: {grade}",
+                    (100, 250),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2, (0, 255, 255), 3)
+
     else:
-        cv2.rectangle(frame, (0, 0), (380, 200), (0, 0, 0), -1)
+        cv2.rectangle(frame, (0, 0), (350, 120), (0, 0, 0), -1)
 
-        cv2.putText(frame, f"Elapsed: {elapsed}s", (20, 35), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2)
-        
-        time_color = (0, 0, 255) if remaining <= 10 else (0, 255, 255)
-        cv2.putText(frame, f"Left: {remaining}s", (200, 35), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, time_color, 2)
+        cv2.putText(frame, f"Time: {remaining}s",
+                    (20, 40),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.9, (0, 255, 255), 2)
 
-        # Show Total Time Held (This is the "Score")
         hold_color = (0, 255, 0) if form_good else (255, 255, 255)
-        cv2.putText(frame, f"HELD: {int(total_hold_time)}s", (20, 90), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, hold_color, 3)
 
-        font_scale = 1.0 if alert_active else 0.7
-        cv2.putText(frame, feedback, (20, 150), 
-                    cv2.FONT_HERSHEY_SIMPLEX, font_scale, feedback_color, 2)
-        
-        # Show Angle for debugging
-        cv2.putText(frame, f"Hip Angle: {int(current_angle)}", (20, 185), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100, 100, 100), 1)
+        cv2.putText(frame, f"Held: {int(total_hold_time)}s",
+                    (20, 90),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.0, hold_color, 2)
 
-        if results.pose_landmarks:
-            mp_draw.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+    # ================= SKELETON =================
+    if results.pose_landmarks:
+        mp_draw.draw_landmarks(
+            frame,
+            results.pose_landmarks,
+            mp_pose.POSE_CONNECTIONS,
+            mp_draw.DrawingSpec(color=skeleton_color, thickness=3, circle_radius=4),
+            mp_draw.DrawingSpec(color=skeleton_color, thickness=2, circle_radius=2)
+        )
 
     cv2.imshow("AI Plank Trainer", frame)
 
-    # ===================== INPUTS =====================
     key = cv2.waitKey(1) & 0xFF
+
     if key == ord('q'):
         break
+
     if key == ord('s'):
         total_hold_time = 0
-        elapsed = 0
         remaining = TOTAL_TIME
         start_time = time.time()
         last_timestamp = time.time()
+        last_good_time = time.time()
         timer_running = True
-        triggered_alerts = set()
-        alert_active = False
-        beep(800, 300)
+        data_sent = False
+        beep()
 
 cap.release()
 cv2.destroyAllWindows()

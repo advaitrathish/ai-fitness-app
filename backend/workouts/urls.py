@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import save_squat_workout
+from .views import save_workout
 
 urlpatterns = [
-    path("api/workout/squat/", save_squat_workout),
+    path("api/workout/", save_workout),
 ]

@@ -1,3 +1,4 @@
+from backend_sender import send_workout_to_backend
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -5,7 +6,13 @@ import time
 import winsound
 from collections import deque
 
-# ===================== 1. SETUP =====================
+# ================= CONFIG =================
+TOTAL_TIME = 35
+ANGLE_UP = 160
+ANGLE_DOWN = 90
+CONFIRM_FRAMES = 4
+IDLE_LIMIT = 5
+
 mp_pose = mp.solutions.pose
 mp_draw = mp.solutions.drawing_utils
 
@@ -16,169 +23,201 @@ pose = mp_pose.Pose(
 
 cap = cv2.VideoCapture(0)
 
-# ===================== CONSTANTS =====================
-TOTAL_TIME = 120
-# Strict Thresholds to prevent small movement counting
-ANGLE_UP = 160    # Arm must be fully straight to reset
-ANGLE_DOWN = 90   # Arm must be at 90 deg or lower to count
-
-# ===================== VARIABLES =====================
+# ================= STATE =================
 timer_running = False
 start_time = 0
-elapsed = 0
 remaining = TOTAL_TIME
 
 dip_count = 0
 stage = "up"
-feedback = "Press 'S' to Start"
-feedback_color = (0, 255, 255)
+data_sent = False
 
-# SMOOTHING BUFFER: Stores last 7 angles to kill noise
-angle_buffer = deque(maxlen=7)
+angle_buffer = deque(maxlen=5)
+up_frames = 0
+down_frames = 0
+last_rep_time = time.time()
 
-# ===================== FUNCTIONS =====================
-def calculate_angle(a, b, c):
-    """Calculates angle at point B (elbow)"""
-    a = np.array(a) # Shoulder
-    b = np.array(b) # Elbow
-    c = np.array(c) # Wrist
-    
-    radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
-    angle = np.abs(radians * 180.0 / np.pi)
-    if angle > 180.0: angle = 360 - angle
-    return angle
-
-def beep(freq=800, dur=100):
-    try: winsound.Beep(freq, dur)
-    except: pass
+# ================= HELPERS =================
+def beep(freq=900, dur=120):
+    try:
+        winsound.Beep(freq, dur)
+    except:
+        pass
 
 def get_grade(count):
-    if count >= 20: return "TITAN", (0, 255, 0)
-    elif 12 <= count < 20: return "WARRIOR", (0, 255, 255)
-    else: return "ROOKIE", (0, 0, 255)
+    if count >= 20:
+        return "GOOD"
+    elif count >= 10:
+        return "AVERAGE"
+    return "BAD"
 
-# ===================== MAIN LOOP =====================
+def calculate_angle(a, b, c):
+    a = np.array(a)
+    b = np.array(b)
+    c = np.array(c)
+
+    radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - \
+              np.arctan2(a[1]-b[1], a[0]-b[0])
+    angle = abs(radians * 180.0 / np.pi)
+    if angle > 180:
+        angle = 360 - angle
+    return angle
+
+# ================= MAIN LOOP =================
 while cap.isOpened():
     ret, frame = cap.read()
-    if not ret: break
+    if not ret:
+        break
 
-    # 1. Processing
     frame = cv2.flip(frame, 1)
     h, w, _ = frame.shape
-    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = pose.process(rgb_image)
-    
-    # 2. Timer
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = pose.process(rgb)
+
+    current_time = time.time()
+
+    # ================= TIMER =================
     if timer_running:
-        elapsed = int(time.time() - start_time)
+        elapsed = int(current_time - start_time)
         remaining = max(0, TOTAL_TIME - elapsed)
-        if remaining <= 0:
+
+        if remaining == 0:
             timer_running = False
-            feedback = "TIME OVER"
-            beep(1500, 1000)
+            beep(1200, 400)
 
-    # 3. Dip Logic
+    skeleton_color = (255, 255, 255)
     current_angle = 0
-    if results.pose_landmarks:
+
+    # ================= DIP DETECTION =================
+    if results.pose_landmarks and timer_running:
         lm = results.pose_landmarks.landmark
-        
-        # Auto-Side Detection
-        l_vis = lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].visibility
-        r_vis = lm[mp_pose.PoseLandmark.RIGHT_ELBOW.value].visibility
 
-        if l_vis > r_vis:
-            shoulder = [lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
-            elbow = [lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
-            wrist = [lm[mp_pose.PoseLandmark.LEFT_WRIST.value].x, lm[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
+        left_vis = lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].visibility
+        right_vis = lm[mp_pose.PoseLandmark.RIGHT_ELBOW.value].visibility
+
+        if left_vis > right_vis:
+            shoulder = lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
+            elbow = lm[mp_pose.PoseLandmark.LEFT_ELBOW.value]
+            wrist = lm[mp_pose.PoseLandmark.LEFT_WRIST.value]
         else:
-            shoulder = [lm[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x, lm[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
-            elbow = [lm[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x, lm[mp_pose.PoseLandmark.RIGHT_ELBOW.value].y]
-            wrist = [lm[mp_pose.PoseLandmark.RIGHT_WRIST.value].x, lm[mp_pose.PoseLandmark.RIGHT_WRIST.value].y]
+            shoulder = lm[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+            elbow = lm[mp_pose.PoseLandmark.RIGHT_ELBOW.value]
+            wrist = lm[mp_pose.PoseLandmark.RIGHT_WRIST.value]
 
-        # Raw Angle Calculation
-        raw_angle = calculate_angle(shoulder, elbow, wrist)
+        if elbow.visibility > 0.6:
+            raw_angle = calculate_angle(
+                [shoulder.x, shoulder.y],
+                [elbow.x, elbow.y],
+                [wrist.x, wrist.y]
+            )
 
-        # --- SMOOTHING (Key Fix) ---
-        angle_buffer.append(raw_angle)
-        # We use the AVERAGE of the last 7 frames. 
-        # This makes the angle count stable even if the camera is shaky.
-        smooth_angle = int(sum(angle_buffer) / len(angle_buffer))
-        current_angle = smooth_angle
+            angle_buffer.append(raw_angle)
+            current_angle = int(sum(angle_buffer) / len(angle_buffer))
 
-        if timer_running:
-            # UP PHASE: Arm must be VERY straight (> 160) to reset
-            if smooth_angle > ANGLE_UP:
-                stage = "up"
-                feedback = "GO DOWN"
-                feedback_color = (255, 255, 255)
-            
-            # DOWN PHASE: Arm must be VERY bent (< 90) to count
-            elif smooth_angle < ANGLE_DOWN and stage == "up":
-                stage = "down"
-                dip_count += 1
-                feedback = "GOOD REP!"
-                feedback_color = (0, 255, 0)
-                beep(1000, 150)
-            
-            # FEEDBACK FOR HALF REPS
-            elif stage == "up" and smooth_angle < 130 and smooth_angle > 90:
-                feedback = "LOWER!"
-                feedback_color = (0, 165, 255)
+            # ---- STABLE LOGIC ----
+            if current_angle > ANGLE_UP:
+                up_frames += 1
+                down_frames = 0
 
-        # Draw Skeleton
-        cv2.circle(frame, (int(elbow[0]*w), int(elbow[1]*h)), 10, (0,0,255), -1)
-        if 'shoulder' in locals():
-            p1 = (int(shoulder[0]*w), int(shoulder[1]*h))
-            p2 = (int(elbow[0]*w), int(elbow[1]*h))
-            p3 = (int(wrist[0]*w), int(wrist[1]*h))
-            cv2.line(frame, p1, p2, (255,255,255), 3)
-            cv2.line(frame, p2, p3, (255,255,255), 3)
+                if up_frames > CONFIRM_FRAMES:
+                    stage = "up"
+                    skeleton_color = (0, 0, 255)  # red = reset
 
-    # ===================== DRAW UI =====================
-    # 1. Background
-    cv2.rectangle(frame, (0, 0), (400, 220), (0, 0, 0), -1)
-    
-    # 2. Stats
-    if not timer_running and remaining == 0:
-        grade, color = get_grade(dip_count)
-        cv2.putText(frame, f"GRADE: {grade}", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
+            elif current_angle < ANGLE_DOWN:
+                down_frames += 1
+                up_frames = 0
+
+                if down_frames > CONFIRM_FRAMES and stage == "up":
+                    stage = "down"
+                    dip_count += 1
+                    last_rep_time = current_time
+                    skeleton_color = (0, 255, 0)  # green = counted
+                    beep()
+            else:
+                up_frames = 0
+                down_frames = 0
+
+        # Idle detection
+        if current_time - last_rep_time > IDLE_LIMIT:
+            cv2.putText(frame, "KEEP MOVING!",
+                        (20, 190),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6, (0, 165, 255), 2)
+
+    # ================= RESULT =================
+    if not timer_running and remaining == 0 and start_time != 0:
+        grade = get_grade(dip_count)
+
+        if not data_sent:
+            send_workout_to_backend(
+                "tricepdips",
+                dip_count,
+                TOTAL_TIME,
+                grade
+            )
+            data_sent = True
+
+        cv2.putText(frame, "WORKOUT OVER",
+                    (100, 150),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2, (255, 255, 255), 3)
+
+        cv2.putText(frame, f"Dips: {dip_count}",
+                    (100, 200),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2, (0, 255, 0), 3)
+
+        cv2.putText(frame, f"Grade: {grade}",
+                    (100, 250),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2, (0, 255, 255), 3)
+
     else:
-        cv2.putText(frame, f"Time: {remaining}s", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-        cv2.putText(frame, f"DIPS: {dip_count}", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.8, (0, 255, 0), 4)
-        cv2.putText(frame, feedback, (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.8, feedback_color, 2)
-    
-    # 3. VISUAL PROGRESS BAR (The Anti-Cheat visual)
-    # Maps angle range [80, 170] to pixel range [20, 380]
-    bar_width = 360
-    bar_start_x = 20
-    
-    # Normalize angle to 0.0 - 1.0 range based on movement
-    # 170 deg (straight) = 0% bar, 80 deg (bent) = 100% bar
-    progress = np.interp(current_angle, [80, 170], [bar_width, 0])
-    
-    # Draw Empty Bar
-    cv2.rectangle(frame, (bar_start_x, 180), (bar_start_x + bar_width, 200), (50, 50, 50), -1)
-    
-    # Draw Fill Bar
-    cv2.rectangle(frame, (bar_start_x, 180), (bar_start_x + int(progress), 200), feedback_color, -1)
-    
-    # Draw Target Line (Green line at 90 deg mark)
-    target_x = bar_start_x + int(np.interp(ANGLE_DOWN, [80, 170], [bar_width, 0]))
-    cv2.line(frame, (target_x, 175), (target_x, 205), (0, 255, 0), 3)
-    
-    # Angle Text
-    cv2.putText(frame, f"{current_angle} deg", (300, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1)
+        cv2.rectangle(frame, (0, 0), (350, 120), (0, 0, 0), -1)
 
-    cv2.imshow("AI Dip Trainer Pro", frame)
+        cv2.putText(frame, f"Time: {remaining}s",
+                    (20, 40),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.9, (0, 255, 255), 2)
+
+        cv2.putText(frame, f"Dips: {dip_count}",
+                    (20, 90),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.0, (0, 255, 0), 2)
+
+        cv2.putText(frame, f"Angle: {current_angle}",
+                    (20, 120),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6, (255, 255, 255), 1)
+
+    # ================= SKELETON =================
+    if results.pose_landmarks:
+        mp_draw.draw_landmarks(
+            frame,
+            results.pose_landmarks,
+            mp_pose.POSE_CONNECTIONS,
+            mp_draw.DrawingSpec(color=skeleton_color, thickness=3, circle_radius=4),
+            mp_draw.DrawingSpec(color=skeleton_color, thickness=2, circle_radius=2)
+        )
+
+    cv2.imshow("AI Tricep Dip Trainer", frame)
 
     key = cv2.waitKey(1) & 0xFF
-    if key == ord('q'): break
+
+    if key == ord('q'):
+        break
+
     if key == ord('s'):
         dip_count = 0
+        remaining = TOTAL_TIME
         start_time = time.time()
         timer_running = True
+        data_sent = False
         angle_buffer.clear()
-        beep(800, 300)
+        up_frames = 0
+        down_frames = 0
+        last_rep_time = time.time()
+        beep()
 
 cap.release()
 cv2.destroyAllWindows()
