@@ -4,16 +4,53 @@ import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import GlassBackground from "@/components/GlassBackground";
 import ThemeToggle from "@/components/ThemeToggle";
+import API from "../lib/apis";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/role-select");
+    setError("");
+
+    if (!username || !password) {
+      setError("Please enter username and password");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Clear old tokens
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+
+      const response = await API.post("token/", {
+        username: username,
+        password: password,
+      });
+
+      const { access, refresh } = response.data;
+
+      // Store new tokens
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+
+      navigate("/dashboard");
+    } catch (err: any) {
+      console.error(err.response?.data);
+      setError(
+        err.response?.data?.detail || "Invalid username or password"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -27,60 +64,65 @@ const Login = () => {
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="glass-card-strong w-full max-w-md p-8"
+        className="w-full max-w-md bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 shadow-xl"
       >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-display font-bold gradient-text mb-2">FitQuest</h1>
-          <p className="text-muted-foreground text-sm">Level up your fitness journey</p>
-        </div>
+        <h2 className="text-3xl font-bold text-center mb-2">FitQuest</h2>
+        <p className="text-center text-sm mb-6 text-gray-300">
+          Level up your fitness journey
+        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username */}
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
-              type="email"
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              type="text"
+              placeholder="Username"
+              className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/20 border border-white/30 focus:outline-none"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
           </div>
 
+          {/* Password */}
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
+              className="w-full pl-10 pr-10 py-2 rounded-lg bg-white/20 border border-white/30 focus:outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-12 py-3 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3 top-2 text-gray-400"
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
-              <input type="checkbox" className="rounded border-border accent-primary" />
-              Remember me
-            </label>
-            <button type="button" className="text-primary hover:underline">Forgot password?</button>
-          </div>
+          {/* Error */}
+          {error && (
+            <p className="text-red-400 text-sm text-center">{error}</p>
+          )}
 
-          <button type="submit" className="btn-gradient w-full py-3 text-sm font-semibold rounded-lg">
-            Sign In
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:opacity-90 transition"
+          >
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-primary hover:underline font-medium">Sign Up</Link>
+        <p className="text-center text-sm mt-4">
+          Don’t have an account?{" "}
+          <Link to="/register" className="text-purple-400">
+            Sign Up
+          </Link>
         </p>
       </motion.div>
     </div>

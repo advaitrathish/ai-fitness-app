@@ -1,72 +1,87 @@
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from django.db.models import Sum
 from django.contrib.auth.models import User
-from .models import Workout
+from .models import WorkoutSession, UserProfile
+from .serializers import RegisterSerializer, MeSerializer
+from rest_framework.views import APIView
+from rest_framework import generics
 
 
-@csrf_exempt
-def save_workout(request):
-    if request.method != "POST":
-        return JsonResponse(
-            {"error": "Only POST method allowed"},
-            status=405
-        )
+# ============================
+# REGISTER (CLASS BASED)
+# ============================
 
-    try:
-        data = json.loads(request.body)
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
 
-        # Required fields
-        user_id = data.get("user")
-        exercise_name = data.get("exercise")
-        rep_count = data.get("count")
-        duration_value = data.get("duration")
-        grade_value = data.get("grade")
 
-        # Validate missing fields
-        if not all([user_id, exercise_name, rep_count, duration_value, grade_value]):
-            return JsonResponse(
-                {"error": "Missing required fields"},
-                status=400
-            )
+# ============================
+# GET CURRENT USER PROFILE
+# ============================
 
-        # Validate user exists
-        try:
-            user_obj = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse(
-                {"error": "Invalid user ID"},
-                status=404
-            )
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        # Create workout
-        workout = Workout.objects.create(
-            user=user_obj,
-            exercise=exercise_name,
-            count=int(rep_count),
-            duration=int(duration_value),
-            grade=grade_value
-        )
+    def get(self, request):
+        serializer = MeSerializer(request.user.profile)
+        return Response(serializer.data)
 
-        return JsonResponse({
-            "status": "success",
-            "workout_id": workout.id,
-            "exercise": workout.exercise,
-            "count": workout.count,
-            "duration": workout.duration,
-            "grade": workout.grade,
-            "date": workout.created_at.strftime("%Y-%m-%d"),
-            "time": workout.created_at.strftime("%H:%M:%S")
-        })
 
-    except json.JSONDecodeError:
-        return JsonResponse(
-            {"error": "Invalid JSON format"},
-            status=400
-        )
+# ============================
+# LOG WORKOUT
+# ============================
 
-    except Exception as e:
-        return JsonResponse(
-            {"status": "error", "message": str(e)},
-            status=500
-        )
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def log_workout(request):
+    user = request.user
+    data = request.data
+
+    exercise_name = data.get('exercise_name')
+    reps = int(data.get('reps', 0))
+    duration = int(data.get('duration_minutes', 0))
+
+    xp_earned = reps * 2 + duration * 5
+
+    WorkoutSession.objects.create(
+        user=user,
+        exercise_name=exercise_name,
+        reps=reps,
+        duration_minutes=duration,
+        xp_earned=xp_earned
+    )
+
+    profile = user.profile
+    profile.xp += xp_earned
+    profile.total_workouts += 1
+    profile.recalculate_level()
+
+    return Response({
+        "xp_earned": xp_earned,
+        "total_xp": profile.xp,
+        "level": profile.level
+    })
+
+
+# ============================
+# LEADERBOARD
+# ============================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def leaderboard(request):
+    profiles = UserProfile.objects.select_related('user').order_by('-xp')[:10]
+
+    data = [
+        {
+            "username": profile.user.username,
+            "xp": profile.xp,
+            "level": profile.level
+        }
+        for profile in profiles
+    ]
+
+    return Response(data)

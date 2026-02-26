@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import AppLayout from "@/components/AppLayout";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -34,6 +36,12 @@ const WithLayout = ({ children }: { children: React.ReactNode }) => (
   <AppLayout>{children}</AppLayout>
 );
 
+const ProtectedWithLayout = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <WithLayout>{children}</WithLayout>
+  </ProtectedRoute>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -41,35 +49,35 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Auth */}
+          {/* Public Routes */}
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/role-select" element={<RoleSelection />} />
 
-          {/* User */}
-          <Route path="/dashboard" element={<WithLayout><Dashboard /></WithLayout>} />
-          <Route path="/live-workout" element={<WithLayout><LiveWorkout /></WithLayout>} />
-          <Route path="/exercises" element={<WithLayout><Exercises /></WithLayout>} />
-          <Route path="/progress" element={<WithLayout><Progress /></WithLayout>} />
-          <Route path="/meal-planner" element={<WithLayout><MealPlanner /></WithLayout>} />
-          <Route path="/ai-coach" element={<WithLayout><AICoach /></WithLayout>} />
-          <Route path="/achievements" element={<WithLayout><Achievements /></WithLayout>} />
-          <Route path="/premium" element={<WithLayout><Premium /></WithLayout>} />
-          <Route path="/settings" element={<WithLayout><ProfileSettings /></WithLayout>} />
+          {/* User Routes (Protected) */}
+          <Route path="/dashboard" element={<ProtectedWithLayout><Dashboard /></ProtectedWithLayout>} />
+          <Route path="/live-workout" element={<ProtectedWithLayout><LiveWorkout /></ProtectedWithLayout>} />
+          <Route path="/exercises" element={<ProtectedWithLayout><Exercises /></ProtectedWithLayout>} />
+          <Route path="/progress" element={<ProtectedWithLayout><Progress /></ProtectedWithLayout>} />
+          <Route path="/meal-planner" element={<ProtectedWithLayout><MealPlanner /></ProtectedWithLayout>} />
+          <Route path="/ai-coach" element={<ProtectedWithLayout><AICoach /></ProtectedWithLayout>} />
+          <Route path="/achievements" element={<ProtectedWithLayout><Achievements /></ProtectedWithLayout>} />
+          <Route path="/premium" element={<ProtectedWithLayout><Premium /></ProtectedWithLayout>} />
+          <Route path="/settings" element={<ProtectedWithLayout><ProfileSettings /></ProtectedWithLayout>} />
 
-          {/* Trainer */}
-          <Route path="/trainer/clients" element={<WithLayout><TrainerClients /></WithLayout>} />
-          <Route path="/trainer/progress" element={<WithLayout><TrainerProgress /></WithLayout>} />
-          <Route path="/trainer/assign-workouts" element={<WithLayout><AssignWorkouts /></WithLayout>} />
-          <Route path="/trainer/assign-meals" element={<WithLayout><AssignMeals /></WithLayout>} />
+          {/* Trainer Routes (Protected) */}
+          <Route path="/trainer/clients" element={<ProtectedWithLayout><TrainerClients /></ProtectedWithLayout>} />
+          <Route path="/trainer/progress" element={<ProtectedWithLayout><TrainerProgress /></ProtectedWithLayout>} />
+          <Route path="/trainer/assign-workouts" element={<ProtectedWithLayout><AssignWorkouts /></ProtectedWithLayout>} />
+          <Route path="/trainer/assign-meals" element={<ProtectedWithLayout><AssignMeals /></ProtectedWithLayout>} />
 
-          {/* Admin */}
-          <Route path="/admin/dashboard" element={<WithLayout><AdminDashboard /></WithLayout>} />
-          <Route path="/admin/users" element={<WithLayout><AdminUsers /></WithLayout>} />
-          <Route path="/admin/trainers" element={<WithLayout><AdminTrainers /></WithLayout>} />
-          <Route path="/admin/analytics" element={<WithLayout><AdminAnalytics /></WithLayout>} />
-          <Route path="/admin/revenue" element={<WithLayout><AdminRevenue /></WithLayout>} />
+          {/* Admin Routes (Protected) */}
+          <Route path="/admin/dashboard" element={<ProtectedWithLayout><AdminDashboard /></ProtectedWithLayout>} />
+          <Route path="/admin/users" element={<ProtectedWithLayout><AdminUsers /></ProtectedWithLayout>} />
+          <Route path="/admin/trainers" element={<ProtectedWithLayout><AdminTrainers /></ProtectedWithLayout>} />
+          <Route path="/admin/analytics" element={<ProtectedWithLayout><AdminAnalytics /></ProtectedWithLayout>} />
+          <Route path="/admin/revenue" element={<ProtectedWithLayout><AdminRevenue /></ProtectedWithLayout>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
