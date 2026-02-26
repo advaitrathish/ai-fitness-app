@@ -1,0 +1,229 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 240 20% 97%;
+    --foreground: 240 10% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+
+    --primary: 265 85% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 200 90% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 10% 92%;
+    --muted-foreground: 240 5% 46%;
+
+    --accent: 330 85% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 88%;
+    --input: 240 10% 88%;
+    --ring: 265 85% 60%;
+
+    --radius: 1rem;
+
+    /* Custom tokens */
+    --glass-bg: 0 0% 100% / 0.55;
+    --glass-border: 0 0% 100% / 0.4;
+    --glass-blur: 20px;
+
+    --gradient-warm: linear-gradient(135deg, hsl(25, 100%, 65%), hsl(340, 90%, 60%));
+    --gradient-cool: linear-gradient(135deg, hsl(200, 90%, 55%), hsl(265, 85%, 60%));
+    --gradient-neon: linear-gradient(135deg, hsl(160, 85%, 50%), hsl(200, 90%, 55%));
+    --gradient-fire: linear-gradient(135deg, hsl(40, 100%, 55%), hsl(0, 90%, 55%));
+    --gradient-hero: linear-gradient(135deg, hsl(265, 85%, 60%), hsl(330, 85%, 60%), hsl(25, 100%, 65%));
+
+    --orb-1: 25 100% 65%;
+    --orb-2: 340 90% 60%;
+    --orb-3: 200 90% 55%;
+    --orb-4: 160 85% 50%;
+
+    --xp-bar: linear-gradient(90deg, hsl(160, 85%, 50%), hsl(200, 90%, 55%), hsl(265, 85%, 60%));
+
+    --sidebar-background: 0 0% 100% / 0.4;
+    --sidebar-foreground: 240 10% 10%;
+    --sidebar-primary: 265 85% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 265 85% 60% / 0.1;
+    --sidebar-accent-foreground: 265 85% 40%;
+    --sidebar-border: 0 0% 100% / 0.3;
+    --sidebar-ring: 265 85% 60%;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Outfit', sans-serif;
+  }
+
+  .dark {
+    --background: 240 15% 8%;
+    --foreground: 0 0% 95%;
+
+    --card: 240 15% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 240 15% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 265 85% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 200 90% 60%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 10% 18%;
+    --muted-foreground: 240 5% 60%;
+
+    --accent: 330 85% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 20%;
+    --input: 240 10% 20%;
+    --ring: 265 85% 65%;
+
+    --glass-bg: 240 15% 12% / 0.5;
+    --glass-border: 0 0% 100% / 0.1;
+
+    --sidebar-background: 240 15% 10% / 0.6;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-accent: 265 85% 65% / 0.15;
+    --sidebar-accent-foreground: 265 85% 80%;
+    --sidebar-border: 0 0% 100% / 0.08;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid hsl(var(--glass-border));
+    border-radius: var(--radius);
+  }
+
+  .glass-card-strong {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid hsl(var(--glass-border));
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px hsl(265 85% 60% / 0.08);
+  }
+
+  .gradient-text {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .xp-bar {
+    background: var(--xp-bar);
+    border-radius: 999px;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .orb-1 {
+    background: hsl(var(--orb-1));
+  }
+  .orb-2 {
+    background: hsl(var(--orb-2));
+  }
+  .orb-3 {
+    background: hsl(var(--orb-3));
+  }
+  .orb-4 {
+    background: hsl(var(--orb-4));
+  }
+
+  .btn-gradient {
+    background: var(--gradient-hero);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px hsl(265 85% 60% / 0.3);
+  }
+
+  .btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px hsl(265 85% 60% / 0.4);
+  }
+
+  .stat-card {
+    @apply glass-card p-5 flex flex-col gap-2;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px hsl(265 85% 60% / 0.12);
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-slow {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .animate-float-delay {
+    animation: float 7s ease-in-out 2s infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(2deg); }
+  66% { transform: translateY(8px) rotate(-1deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
