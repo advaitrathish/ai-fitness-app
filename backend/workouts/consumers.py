@@ -9,8 +9,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from .engines.squat_engine import SquatEngine
 
 
-mp_pose = mp.solutions.pose
-
+from mediapipe.python.solutions import pose as mp_pose
 
 class SquatConsumer(AsyncWebsocketConsumer):
 
